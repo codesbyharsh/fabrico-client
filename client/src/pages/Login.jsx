@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 
 const Login = () => {
-  const [identifier, setIdentifier] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const { login } = useAuth();
@@ -14,7 +14,11 @@ const Login = () => {
     e.preventDefault();
     setError('');
     try {
-      await login(identifier, password);
+      const response = await axios.post('http://localhost:5000/api/users/login', {
+        email,
+        password
+      });
+      login(response.data);
       navigate('/');
     } catch (error) {
       setError('Invalid credentials. Please try again.');
@@ -36,8 +40,8 @@ const Login = () => {
           <label className="block text-sm font-medium text-gray-700">Email</label>
           <input
             type="email"
-            value={identifier}
-            onChange={(e) => setIdentifier(e.target.value)}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="w-full p-2 border rounded"
             required
           />

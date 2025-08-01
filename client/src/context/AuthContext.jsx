@@ -1,45 +1,24 @@
 import React, { createContext, useState, useContext } from 'react';
-import axios from 'axios';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(null);
 
-  const login = async (email, password) => {
-    try {
-      const response = await axios.post('http://localhost:5000/api/users/login', {
-        identifier: email,
-        password
-      });
-      
-      setCurrentUser(response.data);
-      setIsLoggedIn(true);
-      localStorage.setItem('user', JSON.stringify(response.data));
-      return response.data;
-    } catch (error) {
-      throw new Error('Login failed');
-    }
+  const login = (userData) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
-  const logout = async () => {
-    try {
-      if (currentUser) {
-        await axios.post(`http://localhost:5000/api/users/logout/${currentUser._id}`);
-      }
-      setCurrentUser(null);
-      setIsLoggedIn(false);
-      localStorage.removeItem('user');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
   };
 
   return (
     <AuthContext.Provider value={{
-      currentUser,
-      isLoggedIn,
+      currentUser: user,
+      isLoggedIn: !!user,
       login,
       logout
     }}>
@@ -48,4 +27,10 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

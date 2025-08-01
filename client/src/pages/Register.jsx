@@ -2,6 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ const Register = () => {
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({...formData, [e.target.name]: e.target.value});
@@ -26,13 +28,13 @@ const Register = () => {
     }
 
     try {
-      await axios.post('http://localhost:5000/api/users/register', {
+      const response = await axios.post('http://localhost:5000/api/users/register', {
         name: formData.name,
         email: formData.email,
         password: formData.password
       });
-      alert('Registration successful! Please login.');
-      navigate('/login');
+      login(response.data);
+      navigate('/');
     } catch (error) {
       setError(error.response?.data?.message || 'Registration failed');
     }
@@ -40,6 +42,7 @@ const Register = () => {
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
+    
       <h2 className="text-2xl font-bold mb-6 text-center">Create Fabrico Account</h2>
       
       {error && (
