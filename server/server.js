@@ -21,6 +21,9 @@ mongoose.connect(process.env.MONGODB_URI)
 const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/products');
+const cloudinary = require('cloudinary').v2;
+
+
 
 // Use routes
 app.use('/api/users', userRoutes);
@@ -28,6 +31,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 
 
+// Configure Cloudinary after dotenv config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -39,5 +48,4 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  console.log(`Test endpoint: http://localhost:${PORT}/api/test`);
 });

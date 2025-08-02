@@ -39,13 +39,13 @@ export default function Home() {
         {products.map(product => (
           <div key={product._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
             <div className="relative">
-            
-              <img
-                src={imageError ? '/images/placeholder.jpg' : product.image || 'https://placehold.co/300x200'}
-                alt={product.name}
-                className="w-full h-48 object-cover"
-                onError={() => setImageError(true)}
-              />
+              // In your component
+  <img
+    src={imageError ? '/images/placeholder.jpg' : product.image || 'https://placehold.co/300x200'}
+    alt={product.name}
+    className="w-full h-48 object-cover"
+    onError={() => setImageError(true)}
+  />
               <button 
                 className="absolute top-2 right-2 bg-white p-2 rounded-full shadow hover:bg-gray-100"
                 onClick={() => console.log('Add to cart:', product)}
