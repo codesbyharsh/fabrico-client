@@ -5,12 +5,14 @@ import Register from './pages/Register';
 import Navbar from './components/Navbar';
 import ForgotPassword from './components/ForgotPassword';
 import Cart from './pages/Cart';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
     <Router>
       <Navbar />
       <div className="container mx-auto px-4 py-8">
+      <Toaster position="top-right" />
         <Routes>
           <Route path="/" element={
             <Home /> 

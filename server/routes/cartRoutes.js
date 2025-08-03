@@ -11,19 +11,19 @@ router.post('/add', async (req, res) => {
     
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    // Check if product already in cart
+    // Check if product already exists
     const existingItem = user.cart.find(item => 
-      item.productId.toString() === productId && 
-      item.variantIndex === variantIndex
+      item.productId.toString() === productId
     );
-
+    
     if (existingItem) {
-      return res.status(400).json({ error: 'Item already in cart' });
+      return res.status(400).json({ 
+        error: 'Product already in cart - use update to change variant' 
+      });
     }
 
     user.cart.push({ productId, variantIndex });
     await user.save();
-    
     res.json({ success: true, cart: user.cart });
   } catch (error) {
     res.status(500).json({ error: 'Server error' });
@@ -94,21 +94,20 @@ router.put('/update', async (req, res) => {
 router.put('/update-variant', async (req, res) => {
   try {
     const { userId, productId, oldVariantIndex, newVariantIndex } = req.body;
-    
-    // First remove old variant
     const user = await User.findById(userId);
-    user.cart = user.cart.filter(item => 
-      !(item.productId.toString() === productId && 
-        item.variantIndex === oldVariantIndex)
+    
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    const itemIndex = user.cart.findIndex(item => 
+      item.productId.toString() === productId && 
+      item.variantIndex === oldVariantIndex
     );
     
-    // Then add new variant
-    user.cart.push({
-      productId,
-      variantIndex: newVariantIndex,
-      quantity: 1
-    });
+    if (itemIndex === -1) {
+      return res.status(404).json({ error: 'Item not found in cart' });
+    }
     
+    user.cart[itemIndex].variantIndex = newVariantIndex;
     await user.save();
     res.json({ success: true, cart: user.cart });
   } catch (error) {
@@ -116,4 +115,4 @@ router.put('/update-variant', async (req, res) => {
   }
 });
 
-module.exports = router;
+module.exports = router;  

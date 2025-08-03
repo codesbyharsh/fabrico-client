@@ -6,6 +6,20 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
+  const updateCartVariant = async (productId, oldVariantIndex, newVariantIndex) => {
+  try {
+    const response = await axios.put('http://localhost:5000/api/cart/update-variant', {
+      userId: user._id,
+      productId,
+      oldVariantIndex,
+      newVariantIndex
+    });
+    setCart(response.data.cart);
+  } catch (error) {
+    console.error('Update variant error:', error);
+  }
+};
+
 
   // Check localStorage for user on initial load
   useEffect(() => {
@@ -24,12 +38,22 @@ export const AuthProvider = ({ children }) => {
   // Add cart functions
 const addToCart = async (productId, variantIndex = 0) => {
   try {
-    // First remove any existing product (to prevent multiple variants)
-    const existingItem = cart.find(item => item.productId._id === productId);
+    // Check if product already exists in cart
+    const existingItem = cart.find(item => item.productId === productId);
+    
     if (existingItem) {
-      await removeFromCart(productId, existingItem.variantIndex);
+      // Update variant of existing item
+      const response = await axios.put(`http://localhost:5000/api/cart/update-variant`, {
+        userId: user._id,
+        productId,
+        oldVariantIndex: existingItem.variantIndex,
+        newVariantIndex: variantIndex
+      });
+      setCart(response.data.cart);
+      return;
     }
 
+    // Add new item
     const response = await axios.post('http://localhost:5000/api/cart/add', {
       userId: user._id,
       productId,
@@ -104,6 +128,7 @@ const updateCartItem = async (productId, variantIndex, newQuantity) => {
       addToCart,
       removeFromCart,
       updateCartItem,
+      updateCartVariant,
       login,
       logout
     }}>
@@ -118,4 +143,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-};
+}; 

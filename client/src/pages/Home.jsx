@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { FaShoppingCart } from 'react-icons/fa';
-import { FaCartPlus } from 'react-icons/fa'; 
+import { FaShoppingCart, FaCartPlus } from 'react-icons/fa';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -12,6 +12,8 @@ export default function Home() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedVariants, setSelectedVariants] = useState({});
+  const [cartStates, setCartStates] = useState({});
+  
   const { isLoggedIn, currentUser, cart, addToCart, removeFromCart } = useAuth();
   const navigate = useNavigate();
 
@@ -38,6 +40,17 @@ export default function Home() {
     }
   };
 
+  // Update cart states when cart changes
+  useEffect(() => {
+    const newCartStates = {};
+    products.forEach(product => {
+      newCartStates[product._id] = cart.some(item => 
+        item.productId?._id === product._id
+      );
+    });
+    setCartStates(newCartStates);
+  }, [cart, products]);
+
   const handleVariantChange = (productId, variantIndex) => {
     setSelectedVariants(prev => ({
       ...prev,
@@ -49,7 +62,7 @@ export default function Home() {
     return cart.some(item => item.productId._id === productId);
   };
 
-  const handleCartAction = (product, actionType) => {
+  const handleCartAction = async (product, actionType) => {
     const variantIndex = selectedVariants[product._id] || 0;
     
     if (!isLoggedIn) {
@@ -57,19 +70,26 @@ export default function Home() {
       setShowLoginPrompt(true);
       return;
     }
-
+    
     if (actionType === 'buy') {
       console.log('Buy now:', product);
       return;
     }
 
-    if (isInCart(product._id)) {
-      const existingItem = cart.find(item => item.productId._id === product._id);
-      if (existingItem) {
-        removeFromCart(existingItem.productId._id, existingItem.variantIndex);
+    try {
+      if (isInCart(product._id)) {
+        const existingItem = cart.find(item => item.productId._id === product._id);
+        await removeFromCart(existingItem.productId._id, existingItem.variantIndex);
+        setCartStates(prev => ({...prev, [product._id]: false}));
+        toast.success('Removed from cart!');
+      } else {
+        await addToCart(product._id, variantIndex);
+        setCartStates(prev => ({...prev, [product._id]: true}));
+        toast.success('Added to cart!');
       }
-    } else {
-      addToCart(product._id, variantIndex);
+    } catch (error) {
+      toast.error('Failed to update cart');
+      console.error('Cart action error:', error);
     }
   };
 
@@ -94,6 +114,7 @@ export default function Home() {
         {products.map(product => {
           const selectedVariantIndex = selectedVariants[product._id] || 0;
           const variant = product.variants?.[selectedVariantIndex] || {};
+          const isProductInCart = cartStates[product._id] || false;
           
           return (
             <div key={product._id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
@@ -113,12 +134,16 @@ export default function Home() {
                 <button
                   onClick={() => handleCartAction(product, 'add')}
                   className={`absolute top-2 right-2 p-2 rounded-full shadow ${
-                    isInCart(product._id) 
+                    isProductInCart 
                       ? 'bg-blue-500 text-white' 
                       : 'bg-white hover:bg-gray-100'
                   }`}
+                  title={isProductInCart 
+                    ? "Item in cart - Click to remove" 
+                    : "Add to cart"
+                  }
                 >
-                  {isInCart(product._id) ? (
+                  {isProductInCart ? (
                     <FaShoppingCart />
                   ) : (
                     <FaCartPlus className="text-gray-700" />
@@ -146,6 +171,7 @@ export default function Home() {
                           }`}
                           style={{ backgroundColor: v.color.toLowerCase() }}
                           title={`${v.color} (${v.quantity} available)`}
+                          disabled={v.quantity <= 0}
                         />
                       ))}
                     </div>
