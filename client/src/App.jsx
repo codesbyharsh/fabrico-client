@@ -12,9 +12,7 @@ function App() {
       <div className="container mx-auto px-4 py-8">
         <Routes>
           <Route path="/" element={
-        
-            <Home />
-           
+            <Home /> 
             } />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
