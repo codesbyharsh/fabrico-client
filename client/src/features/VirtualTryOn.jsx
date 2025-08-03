@@ -1,4 +1,6 @@
 import Webcam from 'react-webcam';
+import { useRef, useState } from 'react';
+
 const VirtualTryOn = ({ garmentImage }) => {
   const webcamRef = useRef(null);
   const [overlay, setOverlay] = useState(null);

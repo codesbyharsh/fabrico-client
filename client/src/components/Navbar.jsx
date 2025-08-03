@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 const Navbar = () => {
   const { currentUser, isLoggedIn, logout } = useAuth();
   const navigate = useNavigate();
+  const { cart } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -21,8 +22,19 @@ const Navbar = () => {
       <div className="flex space-x-4 items-center">
         <Link to="/" className="hover:text-blue-500 transition">Home</Link>
         
+
+
         {isLoggedIn ? (
           <>
+          <Link to="/cart" className="hover:text-blue-500 transition relative">
+          Cart
+          {cart.length > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              {cart.length}
+            </span>
+          )}
+        </Link>
+
             <span className="text-gray-600">{currentUser?.name}</span>
             <button 
               onClick={handleLogout}

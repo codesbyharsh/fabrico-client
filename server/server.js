@@ -22,14 +22,14 @@ const userRoutes = require('./routes/userRoutes');
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/products');
 const cloudinary = require('cloudinary').v2;
-
+const cartRoutes = require('./routes/cartRoutes');
 
 
 // Use routes
 app.use('/api/users', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
-
+app.use('/api/cart', cartRoutes);
 
 // Configure Cloudinary after dotenv config
 cloudinary.config({

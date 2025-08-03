@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FaShoppingCart } from 'react-icons/fa';
+import { FaCartPlus } from 'react-icons/fa'; 
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -11,7 +12,7 @@ export default function Home() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedVariants, setSelectedVariants] = useState({});
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, currentUser, cart, addToCart, removeFromCart } = useAuth();
   const navigate = useNavigate();
 
   const fetchProducts = async () => {
@@ -19,15 +20,13 @@ export default function Home() {
       setLoading(true);
       const res = await axios.get('http://localhost:5000/api/products');
       
-      // Ensure we're working with an array
       const productsData = Array.isArray(res.data) ? res.data : [];
       setProducts(productsData);
       
-      // Initialize selected variants
       const initialSelected = {};
       productsData.forEach(product => {
         if (product._id && product.variants?.length) {
-          initialSelected[product._id] = 0; // Default to first variant
+          initialSelected[product._id] = 0;
         }
       });
       setSelectedVariants(initialSelected);
@@ -46,40 +45,32 @@ export default function Home() {
     }));
   };
 
+  const isInCart = (productId) => {
+    return cart.some(item => item.productId._id === productId);
+  };
+
   const handleCartAction = (product, actionType) => {
+    const variantIndex = selectedVariants[product._id] || 0;
+    
     if (!isLoggedIn) {
       setSelectedProduct({...product, actionType});
       setShowLoginPrompt(true);
       return;
     }
-    
-    if (actionType === 'add') {
-      addToCart(product);
-    } else if (actionType === 'buy') {
-      buyNow(product);
+
+    if (actionType === 'buy') {
+      console.log('Buy now:', product);
+      return;
     }
-  };
 
-  const addToCart = (product) => {
-    const variantIndex = selectedVariants[product._id] || 0;
-    const variant = product.variants?.[variantIndex];
-    
-    console.log('Added to cart:', {
-      productId: product._id,
-      variant,
-      quantity: 1
-    });
-  };
-
-  const buyNow = (product) => {
-    const variantIndex = selectedVariants[product._id] || 0;
-    const variant = product.variants?.[variantIndex];
-    
-    console.log('Buy now:', {
-      productId: product._id,
-      variant,
-      quantity: 1
-    });
+    if (isInCart(product._id)) {
+      const existingItem = cart.find(item => item.productId._id === product._id);
+      if (existingItem) {
+        removeFromCart(existingItem.productId._id, existingItem.variantIndex);
+      }
+    } else {
+      addToCart(product._id, variantIndex);
+    }
   };
 
   const handleLoginRedirect = () => {
@@ -120,10 +111,18 @@ export default function Home() {
                 )}
                 
                 <button
-                  className="absolute top-2 right-2 bg-white p-2 rounded-full shadow hover:bg-gray-100"
                   onClick={() => handleCartAction(product, 'add')}
+                  className={`absolute top-2 right-2 p-2 rounded-full shadow ${
+                    isInCart(product._id) 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-white hover:bg-gray-100'
+                  }`}
                 >
-                  <FaShoppingCart className="text-gray-700" />
+                  {isInCart(product._id) ? (
+                    <FaShoppingCart />
+                  ) : (
+                    <FaCartPlus className="text-gray-700" />
+                  )}
                 </button>
               </div>
               
