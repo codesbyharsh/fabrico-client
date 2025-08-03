@@ -1,18 +1,21 @@
+// client/src/pages/Cart.jsx
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axios from 'axios';
 import { FaShoppingBag } from 'react-icons/fa';
 import toast from 'react-hot-toast';
-import CartProductItem from '../components/CartProductItem';
-import OrderSummary from '../components/OrderSummary';
+import SimplifiedCartProductItem from '../components/SimplifiedCartProductItem';
 
 const Cart = () => {
-  const { cart, currentUser, removeFromCart, updateCartItem, addToCart } = useAuth();
+  const { cart, currentUser, removeFromCart, markCartAsSeen } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Reset the unseen cart count when the cart page loads
+    markCartAsSeen();
+    
     const fetchCartDetails = async () => {
       try {
         if (currentUser) {
@@ -28,25 +31,12 @@ const Cart = () => {
         setLoading(false);
       }
     };
-
     fetchCartDetails();
-  }, [currentUser, cart]);
+  }, [currentUser, cart, markCartAsSeen]);
 
-  const handleRemoveProduct = async (productId) => {
+  const handleRemoveItem = async (productId) => {
     try {
-      // Remove all variants of this product
-      const variantsToRemove = cartItems
-        .filter(item => item.productId._id === productId)
-        .map(item => ({
-          productId: item.productId._id,
-          variantIndex: item.variantIndex
-        }));
-      
-      // Remove each variant
-      for (const variant of variantsToRemove) {
-        await removeFromCart(variant.productId, variant.variantIndex);
-      }
-      
+      await removeFromCart(productId);
       toast.success('Product removed from cart');
     } catch (error) {
       toast.error('Failed to remove product');
@@ -54,67 +44,20 @@ const Cart = () => {
     }
   };
 
-  const handleQuantityChange = async (productId, variantIndex, newQuantity) => {
-    if (newQuantity < 1) return;
-    
-    try {
-      await updateCartItem(productId, variantIndex, newQuantity);
-    } catch (error) {
-      toast.error('Failed to update quantity');
-      console.error('Quantity update error:', error);
-    }
-  };
-
-  const handleAddVariant = async (productId, variantIndex) => {
-    try {
-      await addToCart(productId, variantIndex, 1);
-      toast.success('Variant added to cart');
-    } catch (error) {
-      toast.error('Failed to add variant');
-      console.error('Add variant error:', error);
-    }
-  };
-
-  const handleRemoveVariant = async (productId, variantIndex) => {
-    try {
-      await removeFromCart(productId, variantIndex);
-      toast.success('Variant removed from cart');
-    } catch (error) {
-      toast.error('Failed to remove variant');
-      console.error('Remove variant error:', error);
-    }
+  const handleBuyNow = (productId) => {
+    // Implement buy now logic
+    console.log('Buy now:', productId);
   };
 
   const calculateTotal = () => {
     return cartItems.reduce(
-      (total, item) => total + (item.productId?.price || 0) * item.quantity,
+      (total, item) => total + (item.productId?.price || 0),
       0
     );
   };
 
-  const calculateTotalQuantity = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
-  };
-
-  const getProductGroups = () => {
-    const groups = {};
-    
-    cartItems.forEach(item => {
-      const productId = item.productId._id;
-      if (!groups[productId]) {
-        groups[productId] = {
-          product: item.productId,
-          variants: []
-        };
-      }
-      groups[productId].variants.push(item);
-    });
-    
-    return Object.values(groups);
-  };
-
   if (loading) return <div className="text-center py-10">Loading cart...</div>;
-  
+
   if (!cartItems || cartItems.length === 0) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
@@ -123,8 +66,8 @@ const Cart = () => {
         <p className="text-gray-600 mb-6">
           Looks like you haven't added anything to your cart yet
         </p>
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="bg-blue-600 text-white py-2 px-6 rounded hover:bg-blue-700"
         >
           Continue Shopping
@@ -136,29 +79,30 @@ const Cart = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-bold mb-8">Your Shopping Cart</h1>
-      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          {getProductGroups().map((group, groupIndex) => (
-            <CartProductItem
-              key={groupIndex}
-              product={group.product}
-              variantsInCart={group.variants}
-              onRemoveProduct={handleRemoveProduct}
-              onAddVariant={handleAddVariant}
-              onRemoveVariant={handleRemoveVariant}
-              onQuantityChange={handleQuantityChange}
+          {cartItems.map((item) => (
+            <SimplifiedCartProductItem
+              key={item._id || item.productId._id}
+              product={item.productId}
+              onRemove={() => handleRemoveItem(item.productId._id)}
+              onBuyNow={handleBuyNow}
             />
           ))}
         </div>
-        
-        {/* Order Summary Section */}
-        <div>
-          {/* <OrderSummary 
-            cartItems={cartItems}
-            totalItems={calculateTotalQuantity()}
-            subtotal={calculateTotal()}
-          /> */}
+        <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
+          <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+          <div className="space-y-3 border-t pt-3">
+            <div className="flex justify-between font-bold">
+              <span>Total</span>
+              <span>₹{calculateTotal().toFixed(2)}</span>
+            </div>
+            <button
+              className="w-full mt-6 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+            >
+              Proceed to Checkout
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -50,16 +50,6 @@ cart: [{
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Product',
     required: true 
-  },
-  variantIndex: { 
-    type: Number, 
-    required: true 
-  },
-  quantity: { 
-    type: Number, 
-    default: 1,
-    min: 1,
-    max:100
   }
 }],
   createdAt: {

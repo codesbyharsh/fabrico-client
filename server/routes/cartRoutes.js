@@ -1,28 +1,27 @@
+// server/routes/cartRoutes.js
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const Product = require('../models/Product');
 
 // Add to cart
 router.post('/add', async (req, res) => {
   try {
-    const { userId, productId, variantIndex } = req.body;
+    const { userId, productId } = req.body;
     const user = await User.findById(userId);
     
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
     // Check if product already exists
-    const existingItem = user.cart.find(item => 
+    const exists = user.cart.some(item => 
       item.productId.toString() === productId
     );
     
-    if (existingItem) {
+    if (exists) {
       return res.status(400).json({ 
-        error: 'Product already in cart - use update to change variant' 
+        success: false,
+        message: 'Product already in cart'
       });
     }
-
-    user.cart.push({ productId, variantIndex });
+    
+    user.cart.push({ productId });
     await user.save();
     res.json({ success: true, cart: user.cart });
   } catch (error) {
@@ -33,16 +32,13 @@ router.post('/add', async (req, res) => {
 // Remove from cart
 router.post('/remove', async (req, res) => {
   try {
-    const { userId, productId, variantIndex } = req.body;
+    const { userId, productId } = req.body;
     const user = await User.findById(userId);
     
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
     user.cart = user.cart.filter(item => 
-      !(item.productId.toString() === productId && 
-        item.variantIndex === variantIndex)
+      item.productId.toString() !== productId
     );
-
+    
     await user.save();
     res.json({ success: true, cart: user.cart });
   } catch (error) {
@@ -64,55 +60,4 @@ router.get('/:userId', async (req, res) => {
   }
 });
 
-// Add to cartRoutes.js
-router.put('/update', async (req, res) => {
-  try {
-    const { userId, productId, variantIndex, quantity } = req.body;
-    const user = await User.findById(userId);
-    
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    const itemIndex = user.cart.findIndex(item => 
-      item.productId.toString() === productId && 
-      item.variantIndex === variantIndex
-    );
-
-    if (itemIndex === -1) {
-      return res.status(404).json({ error: 'Item not found in cart' });
-    }
-
-    user.cart[itemIndex].quantity = quantity;
-    await user.save();
-    
-    res.json({ success: true, cart: user.cart });
-  } catch (error) {
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-// Add variant update endpoint
-router.put('/update-variant', async (req, res) => {
-  try {
-    const { userId, productId, oldVariantIndex, newVariantIndex } = req.body;
-    const user = await User.findById(userId);
-    
-    if (!user) return res.status(404).json({ error: 'User not found' });
-    
-    const itemIndex = user.cart.findIndex(item => 
-      item.productId.toString() === productId && 
-      item.variantIndex === oldVariantIndex
-    );
-    
-    if (itemIndex === -1) {
-      return res.status(404).json({ error: 'Item not found in cart' });
-    }
-    
-    user.cart[itemIndex].variantIndex = newVariantIndex;
-    await user.save();
-    res.json({ success: true, cart: user.cart });
-  } catch (error) {
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
-module.exports = router;  
+module.exports = router;

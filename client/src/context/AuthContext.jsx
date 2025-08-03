@@ -6,117 +6,112 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [cart, setCart] = useState([]);
-  const updateCartVariant = async (productId, oldVariantIndex, newVariantIndex) => {
-  try {
-    const response = await axios.put('http://localhost:5000/api/cart/update-variant', {
-      userId: user._id,
-      productId,
-      oldVariantIndex,
-      newVariantIndex
-    });
-    setCart(response.data.cart);
-  } catch (error) {
-    console.error('Update variant error:', error);
-  }
-};
+  const [unseenCartCount, setUnseenCartCount] = useState(0);
 
-
-  // Check localStorage for user on initial load
+  // Initialize from localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem('fabrico_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-  }, []);
-
-  const login = (userData) => {
+    const storedUnseen = localStorage.getItem('fabrico_unseen_cart');
+    
+ if (storedUser) {
+    const userData = JSON.parse(storedUser);
     setUser(userData);
     setCart(userData.cart || []);
+    // Initialize unseen count to 0 on refresh
+    setUnseenCartCount(0);
+    localStorage.setItem('fabrico_unseen_cart', '0');
+  }
+}, []);
+
+  // Persist user data
+  const persistUser = (userData) => {
     localStorage.setItem('fabrico_user', JSON.stringify(userData));
+    setUser(userData);
   };
 
-  // Add cart functions
-const addToCart = async (productId, variantIndex = 0) => {
+  // Cart management functions
+  const updateCart = (newCart) => {
+    setCart(newCart);
+    if (user) {
+      const updatedUser = { ...user, cart: newCart };
+      persistUser(updatedUser);
+    }
+  };
+
+  const login = (userData) => {
+    const initialUnseen = userData.cart?.length || 0;
+    setUnseenCartCount(initialUnseen);
+    localStorage.setItem('fabrico_unseen_cart', initialUnseen.toString());
+    persistUser(userData);
+  };
+
+const markCartAsSeen = () => {
+  console.log('Marking cart as seen');
+  setUnseenCartCount(0);
+  localStorage.setItem('fabrico_unseen_cart', '0');
+};
+
+const addToCart = async (productId) => {
   try {
-    // Check if product already exists in cart
-    const existingItem = cart.find(item => item.productId === productId);
-    
-    if (existingItem) {
-      // Update variant of existing item
-      const response = await axios.put(`http://localhost:5000/api/cart/update-variant`, {
-        userId: user._id,
-        productId,
-        oldVariantIndex: existingItem.variantIndex,
-        newVariantIndex: variantIndex
-      });
-      setCart(response.data.cart);
-      return;
+    // Check if already in cart
+    if (cart.some(item => item.productId?._id === productId)) {
+      return { success: false, message: 'Product already in cart' };
     }
 
-    // Add new item
     const response = await axios.post('http://localhost:5000/api/cart/add', {
       userId: user._id,
-      productId,
-      variantIndex,
-      quantity: 1
+      productId
     });
-    setCart(response.data.cart);
+
+    const updatedCart = response.data.cart;
+    updateCart(updatedCart);
+    setUnseenCartCount(prev => {
+      const newCount = prev + 1;
+      localStorage.setItem('fabrico_unseen_cart', newCount.toString());
+      return newCount;
+    });
+
+    return { success: true, cart: updatedCart }; // Return updated cart
   } catch (error) {
     console.error('Add to cart error:', error);
+    return { 
+      success: false, 
+      message: error.response?.data?.error || 'Failed to add to cart' 
+    };
   }
 };
 
-const updateVariant = async (productId, oldVariantIndex, newVariantIndex) => {
-  try {
-    // First remove old variant
-    await removeFromCart(productId, oldVariantIndex);
-    // Then add new variant
-    await addToCart(productId, newVariantIndex);
-  } catch (error) {
-    console.error('Update variant error:', error);
-  }
-};
-
-const removeFromCart = async (productId, variantIndex) => {
+const removeFromCart = async (productId) => {
   try {
     const response = await axios.post('http://localhost:5000/api/cart/remove', {
       userId: user._id,
-      productId,
-      variantIndex
+      productId
     });
-    setCart(response.data.cart);
+
+    const updatedCart = response.data.cart;
+    updateCart(updatedCart);
+    setUnseenCartCount(prev => Math.max(0, prev - 1));
+    
+    return { success: true, cart: updatedCart }; // Return updated cart
   } catch (error) {
     console.error('Remove from cart error:', error);
-  }
-};
-
-const updateCartItem = async (productId, variantIndex, newQuantity) => {
-  try {
-    const response = await axios.put(`http://localhost:5000/api/cart/update`, {
-      userId: user._id,
-      productId,
-      variantIndex,
-      quantity: newQuantity
-    });
-    setCart(response.data.cart);
-  } catch (error) {
-    console.error('Update cart error:', error);
+    throw error;
   }
 };
 
   const logout = async () => {
     try {
       if (user) {
-        // Update login status in database
         await axios.put(`http://localhost:5000/api/users/${user._id}/login-status`, {
           isLoggedIn: false
         });
       }
-    } catch (error) {
-      console.error('Logout error:', error);
     } finally {
       setUser(null);
+      setCart([]);
+      setUnseenCartCount(0);
       localStorage.removeItem('fabrico_user');
+      localStorage.removeItem('fabrico_unseen_cart');
     }
   };
 
@@ -125,10 +120,10 @@ const updateCartItem = async (productId, variantIndex, newQuantity) => {
       currentUser: user,
       isLoggedIn: !!user,
       cart,
+      unseenCartCount,
       addToCart,
       removeFromCart,
-      updateCartItem,
-      updateCartVariant,
+      markCartAsSeen,
       login,
       logout
     }}>
@@ -137,10 +132,4 @@ const updateCartItem = async (productId, variantIndex, newQuantity) => {
   );
 };
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}; 
+export const useAuth = () => useContext(AuthContext);
