@@ -78,7 +78,7 @@ const isInCart = (productId) => {
 };
 
 
-  const handleBuyNow = async (product) => {
+ const handleBuyNow = async (product) => {
     if (!isLoggedIn) {
       setSelectedProduct(product);
       setShowLoginPrompt(true);
@@ -86,10 +86,13 @@ const isInCart = (productId) => {
     }
 
     try {
-      if (!isInCart(product._id)) {
-        await addToCart(product._id);
-      }
-      navigate('/cart');
+     
+      // Navigate to checkout with product details
+      navigate('/checkout', { 
+        state: { 
+          product
+        } 
+      });
     } catch (error) {
       toast.error('Failed to proceed to checkout');
     }

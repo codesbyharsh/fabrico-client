@@ -7,7 +7,7 @@ import ForgotPassword from './components/ForgotPassword';
 import Cart from './pages/Cart';
 import { Toaster } from 'react-hot-toast';
 import SimplifiedCartProductItem from './components/SimplifiedCartProductItem';
-
+import Checkout from './pages/Checkout';
 
 function App() {
   return (
@@ -25,6 +25,8 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/SimplifiedCartProductItem" element={<SimplifiedCartProductItem/>} />
+          <Route path="/checkout" element={<Checkout />} />
+        
         </Routes>
       </div>
     </Router>

@@ -26,15 +26,29 @@ const userSchema = new mongoose.Schema({
     default: false
   },
   // Address fields that can be added later
-  address: {
-    line1: { type: String, trim: true },
-    line2: { type: String, trim: true },
-    landmark: { type: String, trim: true },
-    city: { type: String, trim: true },
-    state: { type: String, trim: true },
-    pincode: { type: String, trim: true },
-    country: { type: String, trim: true, default: 'India' }
+  address: [{
+  name: String,
+  mobile: String,
+  pincode: String,
+  addressLine1: String,
+  addressLine2: String,
+  city: String,
+  taluka: String,       // Add this new field
+  district: String,     // Add this new field
+  state: String,
+  landmark: String,
+  alternatePhone: String,
+  location: {
+    type: { type: String, default: 'Point' },
+    coordinates: [Number]
   },
+  addressType: {
+    type: String,
+    enum: ['Home', 'Work'],
+    default: 'Home'
+  },
+  isDefault: Boolean
+}],
     resetPasswordOtp: {
     type: String
   },
