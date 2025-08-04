@@ -6,11 +6,13 @@ import axios from 'axios';
 import { FaShoppingBag } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 import SimplifiedCartProductItem from '../components/SimplifiedCartProductItem';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Cart = () => {
   const { cart, currentUser, removeFromCart, markCartAsSeen } = useAuth();
   const [cartItems, setCartItems] = useState([]);
   const [loading, setLoading] = useState(true);
+   const navigate = useNavigate();
 
   useEffect(() => {
     // Reset the unseen cart count when the cart page loads
@@ -44,10 +46,15 @@ const Cart = () => {
     }
   };
 
-  const handleBuyNow = (productId) => {
-    // Implement buy now logic
-    console.log('Buy now:', productId);
+  // Navigate to checkout with the entire cart
+  const handleProceedToCheckout = () => {
+    if (!currentUser) {
+      toast.error('Please login to proceed to checkout');
+      return;
+    }
+navigate('/checkout', { state: { cartItems } });
   };
+
 
   const calculateTotal = () => {
     return cartItems.reduce(
@@ -86,7 +93,7 @@ const Cart = () => {
               key={item._id || item.productId._id}
               product={item.productId}
               onRemove={() => handleRemoveItem(item.productId._id)}
-              onBuyNow={handleBuyNow}
+              onBuyNow={() => navigate('/checkout', { state: { cartItems: [item] } })}
             />
           ))}
         </div>
@@ -97,7 +104,8 @@ const Cart = () => {
               <span>Total</span>
               <span>₹{calculateTotal().toFixed(2)}</span>
             </div>
-            <button
+           <button
+              onClick={handleProceedToCheckout}
               className="w-full mt-6 bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
             >
               Proceed to Checkout
