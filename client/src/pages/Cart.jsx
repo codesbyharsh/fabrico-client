@@ -46,6 +46,19 @@ const Cart = () => {
     }
   };
 
+  const handleBuyNow = (product) => {
+  navigate('/checkout', { 
+    state: { 
+      cartItems: [{
+        productId: product,
+        variantIndex: 0, // Or actual variant index if available
+        quantity: 1      // Or actual quantity if available
+      }]
+    }
+  });
+};
+
+
   // Navigate to checkout with the entire cart
   const handleProceedToCheckout = () => {
     if (!currentUser) {
@@ -96,13 +109,13 @@ navigate('/checkout', { state: { cartItems } });
             quantity={item.quantity}              // pass quantity
             variantIndex={item.variantIndex}      // pass variant index
             onRemove={() => handleRemoveItem(item.productId._id)}
-            onBuyNow={() => navigate('/checkout', { state: { cartItems: [item] } })}
-          />
+               onBuyNow={handleBuyNow}         
+                />
         ))}
       </div>
 
    {/* Right: Detailed Order Summary */}
-      <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
+      {/* <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
         <h2 className="text-xl font-bold mb-4">Order Summary</h2>
         <ul className="divide-y">
           {cartItems.map(item => {
@@ -124,7 +137,7 @@ navigate('/checkout', { state: { cartItems } });
           })}
         </ul>
 
-        {/* Grand Total */}
+     
         <div className="flex justify-between font-bold text-lg mt-4 border-t pt-4">
           <span>Total</span>
           <span>₹{calculateTotal().toFixed(2)}</span>
@@ -136,7 +149,7 @@ navigate('/checkout', { state: { cartItems } });
         >
           Proceed to Checkout
         </button>
-          </div>
+          </div> */}
         </div>
       </div>
 
