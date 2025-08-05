@@ -112,16 +112,16 @@ const SimplifiedCartProductItem = ({
 
       {/* Buy Now */}
       <div className="flex items-center">
-        <button
-          onClick={() => onBuyNow(product, selectedVariant, quantity)}
-          disabled={maxQty === 0}
- className={`ml-auto py-2 px-4 rounded text-white transition ${            maxQty === 0
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700'
-          }`}
-        >
-          Buy Now
-        </button>
+       <button
+  onClick={() => onBuyNow(product, selectedVariant, quantity)}
+  disabled={maxQty === 0}
+  className={`ml-auto py-2 px-4 rounded text-white transition ${ maxQty === 0
+    ? 'bg-gray-400 cursor-not-allowed'
+    : 'bg-blue-600 hover:bg-blue-700'
+  }`}
+>
+  Buy Now
+</button>
       </div>
     </div>
   );

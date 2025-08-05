@@ -15,12 +15,12 @@ const Checkout = () => {
   const { product, cartItems } = location.state || {};
   const currentProduct = product || (cartItems && cartItems[0]?.productId);
 
-  useEffect(() => {
-    if (cartItems && cartItems.length > 0) {
-      setSelectedVariant(cartItems[0].variantIndex || 0);
-      setQuantity(cartItems[0].quantity || 1);
-    }
-  }, [cartItems]);
+useEffect(() => {
+  if (cartItems && cartItems.length > 0) {
+    setSelectedVariant(cartItems[0].variantIndex || 0);
+    setQuantity(cartItems[0].quantity || 1);
+  }
+}, [cartItems]);
 
   const nextStep = () => setStep(step + 1);
   const prevStep = () => step > 1 ? setStep(step - 1) : navigate(-1);
@@ -60,13 +60,15 @@ const Checkout = () => {
         />
       )}
 
-      {step === 2 && currentProduct && (
-        <OrderSummary
-          product={currentProduct}
-          onSubmit={handleOrderSubmit}
-          onBack={prevStep}
-        />
-      )}
+{step === 2 && currentProduct && (
+  <OrderSummary
+    product={currentProduct}
+    initialVariant={selectedVariant}
+    initialQuantity={quantity}
+    onSubmit={handleOrderSubmit}
+    onBack={prevStep}
+  />
+)}
 
       {step === 3 && currentProduct && address && (
         <PaymentOptions

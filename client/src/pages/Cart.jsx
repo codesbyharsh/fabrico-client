@@ -46,13 +46,13 @@ const Cart = () => {
     }
   };
 
-  const handleBuyNow = (product) => {
-  navigate('/checkout', { 
-    state: { 
+const handleBuyNow = (product, variantIndex, quantity) => {
+  navigate('/checkout', {
+    state: {
       cartItems: [{
         productId: product,
-        variantIndex: 0, // Or actual variant index if available
-        quantity: 1      // Or actual quantity if available
+        variantIndex: variantIndex,
+        quantity: quantity
       }]
     }
   });
@@ -102,16 +102,18 @@ navigate('/checkout', { state: { cartItems } });
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Left: Cart Items */}
       <div className="lg:col-span-2 space-y-6">
-        {cartItems.map(item => (
-          <SimplifiedCartProductItem
-            key={item._id || item.productId._id}
-            product={item.productId}
-            quantity={item.quantity}              // pass quantity
-            variantIndex={item.variantIndex}      // pass variant index
-            onRemove={() => handleRemoveItem(item.productId._id)}
-               onBuyNow={handleBuyNow}         
-                />
-        ))}
+{cartItems.map(item => (
+  <SimplifiedCartProductItem
+    key={item._id || item.productId._id}
+    product={item.productId}
+    variantIndex={item.variantIndex}
+    quantity={item.quantity}
+    onRemove={() => handleRemoveItem(item.productId._id)}
+    onBuyNow={(product, variantIndex, quantity) => 
+      handleBuyNow(product, variantIndex, quantity)
+    }
+  />
+))}
       </div>
 
    {/* Right: Detailed Order Summary */}

@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
 
-const OrderSummary = ({ product, onSubmit, onBack }) => {
-  const [selectedVariant, setSelectedVariant] = useState(0);
-  const [quantity, setQuantity] = useState(1);
-
+const OrderSummary = ({ 
+  product, 
+  initialVariant = 0, 
+  initialQuantity = 1,
+  onSubmit, 
+  onBack 
+}) => {
+  const [selectedVariant, setSelectedVariant] = useState(initialVariant);
+  const [quantity, setQuantity] = useState(initialQuantity);
+  
   if (!product || !product.price) return null; // Added price check
 
   const variant = product.variants?.[selectedVariant] || {};
