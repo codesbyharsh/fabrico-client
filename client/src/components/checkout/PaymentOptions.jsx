@@ -88,7 +88,8 @@ const PaymentOptions = ({ product, address, variantIndex, quantity, onBack }) =>
           <div className="border rounded p-4">
             <h3 className="font-medium mb-3">Select Payment Method</h3>
             
-            <div className="space-y-3">
+           <div className="space-y-3">
+            {product.codAvailable ? (
               <label className="flex items-center p-3 border rounded cursor-pointer">
                 <input
                   type="radio"
@@ -105,24 +106,29 @@ const PaymentOptions = ({ product, address, variantIndex, quantity, onBack }) =>
                   </p>
                 </div>
               </label>
-              
-              <label className="flex items-center p-3 border rounded cursor-pointer">
-                <input
-                  type="radio"
-                  name="payment"
-                  value="UPI"
-                  checked={paymentMethod === 'UPI'}
-                  onChange={() => setPaymentMethod('UPI')}
-                  className="mr-3"
-                />
-                <div>
-                  <span className="font-medium">UPI</span>
-                  <p className="text-sm text-gray-500">
-                    Pay instantly using UPI
-                  </p>
-                </div>
-              </label>
-            </div>
+            ) : (
+              <div className="p-3 text-sm text-gray-500">
+                COD is not available for this product
+              </div>
+            )}
+            
+            <label className="flex items-center p-3 border rounded cursor-pointer">
+              <input
+                type="radio"
+                name="payment"
+                value="UPI"
+                checked={paymentMethod === 'UPI'}
+                onChange={() => setPaymentMethod('UPI')}
+                className="mr-3"
+              />
+              <div>
+                <span className="font-medium">UPI</span>
+                <p className="text-sm text-gray-500">
+                  Pay instantly using UPI
+                </p>
+              </div>
+            </label>
+          </div>
             
             <button
               onClick={handlePayment}

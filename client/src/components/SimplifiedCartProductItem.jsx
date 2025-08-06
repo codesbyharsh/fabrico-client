@@ -28,24 +28,50 @@ const SimplifiedCartProductItem = ({
     }
   };
 
-  return (
- <div className="bg-white rounded-lg shadow-md mb-6 p-4 space-y-4">
-       {/* Header */}
-  <div className="flex justify-between">
-          <div className="flex">
+ // More robust COD availability check
+  const isCodAvailable = () => {
+    if (product && product.variants && product.variants[selectedVariant]) {
+      return product.variants[selectedVariant].codAvailable !== undefined
+        ? product.variants[selectedVariant].codAvailable
+        : product.codAvailable !== undefined
+          ? product.codAvailable
+          : true; // Default value if not specified
+    }
+    return true; // Fallback
+  };
+
+ return (
+    <div className="bg-white rounded-lg shadow-md mb-6 p-4 space-y-4">
+      {/* Header */}
+      <div className="flex justify-between">
+        <div className="flex">
           {variant.images?.[0] 
             ? <img src={variant.images[0]} alt={product.name} className="w-16 h-16 object-cover rounded mr-4" />
             : <div className="w-16 h-16 bg-gray-200 border-2 border-dashed rounded mr-4" />
           }
           <div>
             <h3 className="font-semibold text-lg">{product.name}</h3>
-           <p className='text-black font-semibold '>MRP: <span className="text-gray-600">₹ {product.price?.toFixed(2)}</span></p> 
+            <div className="flex items-center gap-2 mt-1">
+             <div className={`text-xs px-2 py-1 rounded-full ${
+              isCodAvailable()
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-red-100 text-red-800'
+            }`}>
+              {isCodAvailable() ? 'COD Available' : 'COD Not Available'}
+            </div>
+            <div>
+              <p className='text-black font-semibold'>MRP: 
+                <span className="text-gray-600">₹ {product.price?.toFixed(2)}</span>
+              </p>
+              </div>
+            </div>
+            {/* Remove the duplicate MRP line below */}
             <p className="text-sm text-gray-500 capitalize">
               {product.category} • {product.subCategory}
             </p>
-            
           </div>
         </div>
+
         <button
           onClick={onRemove}
           className="text-red-500 hover:text-red-700 flex items-center"

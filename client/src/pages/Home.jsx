@@ -156,6 +156,13 @@ const isInCart = (productId) => {
               <div className="p-4">
                 <h3 className="font-semibold text-lg mb-1">{product.name}</h3>
                 <p className="text-gray-600 mb-2">₹{product.price}</p>
+                 <span className={`text-xs px-2 py-1 rounded-full ${
+                    product.codAvailable 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {product.codAvailable ? 'COD Available' : 'COD Not Available'}
+                  </span>
                 <p className="text-sm text-gray-500 mb-3 capitalize">
                   {product.category} • {product.subCategory}
                 </p>

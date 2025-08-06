@@ -9,7 +9,7 @@ const OrderSummary = ({
 }) => {
   const [selectedVariant, setSelectedVariant] = useState(initialVariant);
   const [quantity, setQuantity] = useState(initialQuantity);
-  
+
   if (!product || !product.price) return null; // Added price check
 
   const variant = product.variants?.[selectedVariant] || {};
@@ -44,6 +44,13 @@ const OrderSummary = ({
           <div className="flex-1">
             <h3 className="font-semibold text-lg">{product.name}</h3>
             <p className="text-gray-600">₹{price.toFixed(2)}</p> {/* Changed to use price variable */}
+             <span className={`text-xs px-2 py-1 rounded-full ${
+              product.codAvailable 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-red-100 text-red-800'
+            }`}>
+    {product.codAvailable ? 'COD Available' : 'COD Not Available'}
+  </span>
             <p className="text-sm text-gray-500 capitalize">
               {product.category} • {product.subCategory}
             </p>
